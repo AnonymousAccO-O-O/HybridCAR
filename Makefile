@@ -1,0 +1,413 @@
+ifeq ($(SOLVER),MINISAT)
+SOLVER_FLAG=-DMINISAT
+else
+SOLVER_FLAG=-DGLUCOSE
+endif
+
+
+ifeq ($(SOLVER),MINISAT)
+NEW_SOURCES = aiger.c carsolver.cpp newpartialsolver.cpp newmainsolver.cpp model.cpp utility.cpp data_structure.cpp newmain.cpp \
+	minisat/core/Solver.cc minisat/utils/Options.cc minisat/utils/System.cc newchecker.cpp   
+CFLAG = -I../ -I./minisat -D__STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS -c -g
+
+else
+NEW_SOURCES = aiger.c carsolver.cpp newpartialsolver.cpp newmainsolver.cpp model.cpp utility.cpp data_structure.cpp newmain.cpp \
+	glucose/core/Solver.cc glucose/utils/Options.cc glucose/utils/System.cc newchecker.cpp   
+CFLAG = -I../ -I./glucose -D__STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS -c -g 
+endif
+
+NEW_OBJS = carsolver.o newpartialsolver.o newmainsolver.o model.o newmain.o utility.o data_structure.o aiger.o\
+	Solver.o Options.o System.o newchecker.o 
+
+# consider using -fprofile-generate and -fprofile-use
+OPTFLAG = -Ofast -march=native -frename-registers -funroll-loops -fno-signed-zeros
+
+ifeq ($(TRAIL),ON)
+TRAIL_FLAG=-DTRAIL
+endif
+
+ifeq ($(DIVE),ON)
+DIVE_FLAG=-DDIVE
+endif
+
+ifeq ($(INTER),OFF)
+INTER_FLAG=
+else
+INTER_FLAG=-DINTER
+endif
+
+ifeq ($(ROTATE),OFF)
+ROTATE_FLAG=
+else
+ROTATE_FLAG=-DROTATE
+endif
+
+ifeq ($(SML),ON)
+SML_FLAG=-DSML
+else
+SML_FLAG=
+endif
+
+ifeq ($(RECENT),ON)
+RECENT_FLAG=-DRECENT
+else
+RECENT_FLAG=
+endif
+
+ifeq ($(MORE_INTER),ON)
+MORE_INTER_FLAG=-DMORE_INTER
+else
+MORE_INTER_FLAG=
+endif
+
+ifeq ($(ASS_MI_LATER),ON)
+ASS_MI_LATER_FLAG=-DASS_MI_LATER
+else
+ASS_MI_LATER_FLAG=
+endif
+
+ifeq ($(FALLIN),ON)
+FALLIN_FLAG=-DFALLIN_STATS
+else
+FALLIN_FLAG=
+endif
+
+ifeq ($(FORESEE),ON)
+FORESEE_FLAG=-DFORESEE
+else
+FORESEE_FLAG=
+endif
+
+ifeq ($(FORESEE_PRIME),ON)
+FORESEE_PRIME_FLAG=-DFORESEE_PRIME
+else
+FORESEE_PRIME_FLAG=
+endif
+
+INTER_CNT ?= 1
+INTER_CNT_FLAG = -DINTER_CNT=${INTER_CNT}
+
+# no need for inter depth. it does not contribute.
+# INTER_DEPTH ?= 1
+# INTER_DEPTH_FLAG = -DINTER_DEPTH=${INTER_DEPTH}
+SML_CNT ?= 8
+SML_CNT_FLAG = -DSML_CNT=${SML_CNT}
+
+ifeq ($(FRESHUC),OFF)
+FRESHUC_FLAG=
+else
+FRESHUC_FLAG=-DFRESH_UC
+endif
+
+ifeq ($(FRESHU),ON)
+FRESH_U_FLAG=-DFRESH_U
+else
+FRESH_U_FLAG=
+endif
+
+ifeq ($(ORDERU),ON)
+ORDERED_U_FLAG=-DORDERED_U
+else
+ORDERED_U_FLAG=
+endif
+
+ifeq ($(CONTAINER),PQUEUE)
+CONTAINER_FLAG=-DPQUEUE
+else
+CONTAINER_FLAG=-DSTACK
+endif
+
+ifeq ($(CLOSURE),ON)
+CLOSURE_FLAG=-DCLOSURE
+else
+CLOSURE_FLAG=
+endif
+
+ifeq ($(PARTIAL),OFF)
+PARTIAL_FLAG=
+else
+PARTIAL_FLAG=-DPARTIAL
+endif
+
+# this is much too heavy, which is disastrous as to unsafe bench.
+ifeq ($(INV_LEVEL),HIGH)
+INV_FLAG=-DINV_HEAVY
+else ifeq ($(INV_LEVEL),MEDIUM)
+INV_FLAG=-DINV_MEDIUM
+else ifeq ($(INV_LEVEL),LOW)
+INV_FLAG=-DINV_LIGHT
+else
+INV_FLAG=
+endif
+
+ifeq ($(SIMPU_LEVEL),HIGH)
+SIMPU_FLAG=-DSIMPU_HEAVY
+SIMPU_THRESH ?= 16
+SIMPU_THRESH_FLAG=-DSIMPU_THRESH=${SIMPU_THRESH}
+# else ifeq ($(SIMPU_LEVEL),MEDIUM)
+# SIMPU_FLAG=-DINV_MEDIUM
+else ifeq ($(SIMPU_LEVEL),LOW)
+SIMPU_FLAG=-DSIMPU_LIGHT
+SIMPU_THRESH ?= 16
+SIMPU_THRESH_FLAG=-DSIMPU_THRESH=${SIMPU_THRESH}
+else
+SIMPU_FLAG=
+endif
+
+
+ifeq ($(SIMPU_INC),ON)
+SIMPU_INC_FLAG=-DSIMPU_INC
+else
+SIMPU_INC_FLAG=
+endif
+
+
+
+SEED ?= 0
+
+ifeq ($(SEED),0)
+RANDOM_FLAG= 
+else
+RANDOM_FLAG=-DRANDSEED=$(SEED)
+endif
+
+ifeq ($(PICK),RANDOM)
+PICK_FLAG=-DRANDOM_PICK
+else ifeq ($(PICK),DESC_INC)
+PICK_FLAG=-DPICK_DESC_INC
+else ifeq ($(PICK),DESC_DEC)
+PICK_FLAG=-DPICK_DESC_DEC
+else ifeq ($(PICK),CHILD_INC)
+PICK_FLAG=-DPICK_CHILD_INC
+else ifeq ($(PICK),CHILD_DEC)
+PICK_FLAG=-DPICK_CHILD_DEC
+else ifeq ($(PICK),DESC_INC_ANC)
+PICK_FLAG=-DPICK_DESC_INC_ANC
+else ifeq ($(PICK),DESC_DEC_ANC)
+PICK_FLAG=-DPICK_DESC_DEC_ANC
+else ifeq ($(PICK),CHILD_INC_ANC)
+PICK_FLAG=-DPICK_CHILD_INC_ANC
+else ifeq ($(PICK),CHILD_DEC_ANC)
+PICK_FLAG=-DPICK_CHILD_DEC_ANC
+else ifeq ($(PICK),DESC_INC_HEAVY)
+PICK_FLAG=-DPICK_DESC_INC_HEAVY
+else ifeq ($(PICK),DESC_DEC_HEAVY)
+PICK_FLAG=-DPICK_DESC_DEC_HEAVY
+else ifeq ($(PICK),PARTITION-INC)
+PICK_FLAG=-DPICK_PARTITION_INC
+else ifeq ($(PICK),PARTITION-DEC)
+PICK_FLAG=-DPICK_PARTITION_DEC
+else ifeq ($(PICK),PICK_RESTART)
+PICK_FLAG=-DPICK_RESTART
+else ifeq ($(PICK),ONESHOT)
+PICK_FLAG=-DPICK_ONESHOT
+else
+PICK_FLAG=
+endif
+
+
+
+ifeq ($(ASSU),IRRI)
+ASSUM_FLAG=-DASS_IRRI
+else ifeq ($(ASSU),IIRR)
+ASSUM_FLAG=-DASS_IIRR
+else ifeq ($(ASSU),IRIR)
+ASSUM_FLAG=-DASS_IRIR
+else ifeq ($(ASSU),RIRI)
+ASSUM_FLAG=-DASS_RIRI
+else ifeq ($(ASSU),RRII)
+ASSUM_FLAG=-DASS_RRII
+else ifeq ($(ASSU),RIIR)
+ASSUM_FLAG=-DASS_RIIR
+else ifeq ($(ASSU),IRSRI)
+ASSUM_FLAG=-DASS_IRSRI
+else ifeq ($(ASSU),RISRI)
+ASSUM_FLAG=-DASS_RISRI
+else ifeq ($(ASSU),RSIRI)
+ASSUM_FLAG=-DASS_RSIRI
+else ifeq ($(ASSU),SIRRI)
+ASSUM_FLAG=-DASS_SIRRI
+else ifeq ($(ASSU),S_NEXT)
+ASSUM_FLAG=-DASS_S_NEXT
+else ifeq ($(ASSU),PRES_NEXT)
+ASSUM_FLAG=-DASS_PRES_NEXT
+else ifeq ($(ASSU),NEXT_INTER_S)
+ASSUM_FLAG=-DASS_NEXT_INTER_S
+else ifeq ($(ASSU),NEXT_INTER_PRES)
+ASSUM_FLAG=-DASS_NEXT_INTER_PRES
+else ifeq ($(ASSU),INTER_NEXT)
+ASSUM_FLAG=-DASS_INTER_NEXT
+else ifeq ($(ASSU),NEXT_INTER)
+ASSUM_FLAG=-DASS_NEXT_INTER
+else ifeq ($(ASSU),RECENT)
+ASSUM_FLAG=-DASS_RECENT
+else ifeq ($(ASSU),INTER_RECENT)
+ASSUM_FLAG=-DASS_INTER_RECENT
+else ifeq ($(ASSU),RECENT_INTER)
+ASSUM_FLAG=-DRECENT_INTER
+else ifeq ($(ASSU),SHUFFLE_INTER)
+ASSUM_FLAG=-DASS_SHUFFLE_INTER
+else
+ASSUM_FLAG=
+endif
+
+
+# NOTE: not so useful, maybe too heavy
+ifeq ($(REORDER),FREQ)
+REORDER_FLAG=-DREORDER_FREQ
+else ifeq ($(REORDER),RANDOM)
+REORDER_FLAG=-DREORDER_RANDOM
+else
+REORDER_FLAG=
+endif
+
+# NOTE: not so useful, maybe too heavy
+ifeq ($(SHUFFLE_INTER),ON)
+SHUFFLE_INTER_FLAG=-DSHUFFLE_INTER
+else 
+SHUFFLE_INTER_FLAG= 
+endif
+
+# NOTE: not so useful, maybe too heavy
+ifeq ($(SHUFFLE_ROTATE),ON)
+SHUFFLE_ROTATE_FLAG=-DSHUFFLE_ROTATE
+else
+SHUFFLE_ROTATE_FLAG= 
+endif
+
+ifeq ($(INTER_RAND),ON)
+INTER_RAND_FLAG=-DINTER_RAND
+else
+INTER_RAND_FLAG= 
+endif
+
+ifeq ($(INTER_LONG),ON)
+INTER_LONG_FLAG=-DINTER_LONG
+else
+INTER_LONG_FLAG= 
+endif
+
+ifeq ($(INTER_SHORT),ON)
+INTER_SHORT_FLAG=-DINTER_SHORT
+else
+INTER_SHORT_FLAG= 
+endif
+
+ifeq ($(INTER_CNT_DYN),ON)
+INTER_CNT_DYN_FLAG=-DINTER_CNT_DYN
+else
+INTER_CNT_DYN_FLAG= 
+endif
+
+# ifeq ($(LAST_FIRST),OFF)
+# LAST_FIRST_FLAG=
+# else
+# LAST_FIRST_FLAG=-DLAST_FIRST
+# endif
+
+ifeq ($(INTER_ORDER),LAST_FIRST)
+INTER_ORDER_FLAG=-DLAST_FIRST
+else ifeq ($(INTER_ORDER),REVERSE)
+INTER_ORDER_FLAG=-DINTER_REVERSE
+else ifeq ($(INTER_ORDER),SHUFFLE)
+INTER_ORDER_FLAG=-DINTER_SHUFFLE
+else ifeq ($(INTER_ORDER),LF_SHUFFLE)
+INTER_ORDER_FLAG=-DINTER_LF_SHUFFLE
+else
+INTER_ORDER_FLAG=
+endif
+
+ifeq ($(INTER_INVALIDATE),SIMPLE)
+INTER_INVALIDATE_FLAG=-DINTER_INVALIDATE_SIMPLE
+else ifeq ($(INTER_INVALIDATE),HARD)
+INTER_INVALIDATE_FLAG=-DINTER_INVALIDATE_HARD
+else
+INTER_INVALIDATE_FLAG= 
+endif
+
+ifeq ($(COMMON),ON)
+COMMON_FLAG=-DCOMMON
+else
+COMMON_FLAG= 
+endif
+
+ifeq ($(REDUCE_DYN),ON)
+REDUCE_DYN_FLAG=-DREDUCE_DYN
+else
+REDUCE_DYN_FLAG= 
+endif
+
+ifeq ($(REDUCE_ACCORD),SIZE)
+REDUCE_ACCORD_FLAG=-DREDUCE_ACCORD_SIZE
+else
+REDUCE_ACCORD_FLAG=-DREDUCE_ACCORD_ACTIVITY
+endif
+
+# ifeq ($(DISPOSE),ON)
+# DISPOSE_FLAG=-DDISPOSE
+# else
+# DISPOSE_FLAG= 
+# endif
+
+ifeq ($(PICK_GUIDE), RANDOM)
+GUIDE_FLAG=-DPICK_GUIDE_RANDOM
+else
+GUIDE_FLAG=
+endif
+
+PP_CNT ?=-1
+ifeq ($(PP_CNT), -1)
+PP_LIMIT_CNT_FLAG=
+else
+PP_LIMIT_CNT_FLAG=-DPP_LIMIT_CNT=$(PP_CNT)
+endif
+
+PP_TIME ?= -1
+ifeq ($(PP_TIME), -1)
+PP_LIMIT_TIME_FLAG=
+else
+PP_LIMIT_TIME_FLAG=-DPP_LIMIT_TIME=$(PP_TIME)
+endif
+
+MAXNI ?= -1
+ifeq ($(MAXNI), -1)
+MAXNI_FLAG=
+else
+MAXNI_FLAG=-DMAXNI=$(MAXNI)
+endif
+
+COOK ?= -1
+ifeq ($(COOK), -1)
+COOK_FLAG=
+else
+COOK_FLAG=-DCOOK=$(COOK)
+endif
+
+ifeq ($(COOK_LIGHT), ON)
+COOK_LIGHT_FLAG=-DCOOK_LIGHT
+else
+COOK_LIGHT_FLAG=
+endif
+
+REDUCE_BY ?= 2
+REDUCE_BY_FLAG = -DREDUCE_LEARNT_BY=${REDUCE_BY}
+
+LFLAG = -g -lz -lpthread 
+
+GCC = gcc
+
+GXX = g++
+
+TARGET ?= caramel-dbg
+
+OPTIONS=$(TRAIL_FLAG) ${INTER_FLAG} ${ROTATE_FLAG} ${CLOSURE_FLAG} ${RANDOM_FLAG} ${CONTAINER_FLAG} ${FRESHUC_FLAG} ${FRESH_U_FLAG} ${ORDERED_U_FLAG} ${PARTIAL_FLAG} ${INV_FLAG} ${SIMPU_FLAG} ${SIMPU_THRESH_FLAG} ${SIMPU_INC_FLAG} ${PICK_FLAG} ${SHUFFLE_INTER_FLAG} ${SHUFFLE_ROTATE_FLAG} ${REORDER_FLAG} ${INTER_RAND_FLAG}  ${ASSUM_FLAG} ${SML_FLAG} ${SML_CNT_FLAG} ${DIVE_FLAG} ${COMMON_FLAG} ${INTER_LONG_FLAG} ${INTER_SHORT_FLAG} ${GUIDE_FLAG} ${INTER_CNT_DYN_FLAG} ${FORESEE_FLAG} ${FORESEE_PRIME_FLAG} ${RECENT_FLAG} ${FALLIN_FLAG} ${DISPOSE_FLAG} ${SOLVER_FLAG} ${REDUCE_BY_FLAG} ${MORE_INTER_FLAG} ${REDUCE_ACCORD_FLAG} ${REDUCE_DYN_FLAG} ${ASS_MI_LATER_FLAG} ${INTER_INVALIDATE_FLAG} ${INTER_ORDER_FLAG} ${PP_LIMIT_CNT_FLAG} ${PP_LIMIT_TIME_FLAG} ${MAXNI_FLAG} ${COOK_FLAG} ${COOK_LIGHT_FLAG} ${INTER_CNT_FLAG} #${INTER_DEPTH_FLAG} ${LAST_FIRST_FLAG}
+
+new-checker:$(NEW_SOURCES)
+	$(GCC) ${OPTFLAG} ${OPTIONS} $(CFLAG) $(NEW_SOURCES)
+	$(GXX) ${OPTFLAG} -g -o ${TARGET} $(NEW_OBJS) $(LFLAG)
+
+clean: 
+	rm *.o
+	rm caramel-dbg
+
+.PHONY: new-checker
