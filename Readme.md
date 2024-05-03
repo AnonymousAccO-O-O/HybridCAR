@@ -1,6 +1,6 @@
 ## Readme
 
-This repository keeps the artifacts for TACAS'24.
+This repository keeps the artifacts for Hybrid CAR.
 
 ### Structure
 
