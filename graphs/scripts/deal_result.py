@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from openpyxl import Workbook
 
-base_dir = ''
+base_dir = '.' # fill in here, the root dir, where sub-dirs each contains result of a checker. 
 sub_dirs = [d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))]
 log_files = set()
 for sub_dir in sub_dirs:
