@@ -1,0 +1,46 @@
+#!/bin/bash
+#PBS -N bac-ni-1
+#PBS -l nodes=1:ppn=1
+#PBS -j oe
+#PBS -o log/output_log
+#PBS -e log/error_log
+#PBS -t 0-437
+#PBS -l walltime=01:30:00
+#PBS -l mem=8gb
+#PBS -q small
+
+cd $PBS_O_WORKDIR
+echo begin time is `date` | tee -a run.log
+
+sourceDir="./ICCAD"
+file_name_list=()
+
+# append the list
+for file in ${sourceDir}/*; do
+    if [ -f "$file" ]; then
+        file_name_list+=("$file")
+    fi
+done
+
+# Define the number of subtasks per main task
+subtasks_per_task=1
+
+# Calculate the total number of main tasks
+total_main_tasks=$((total_jobs / subtasks_per_task))
+
+# Calculate the index range for the current main task
+start_idx=$((PBS_ARRAYID * subtasks_per_task))
+end_idx=$((start_idx + subtasks_per_task - 1))
+
+# Loop through the subtasks for the current main task
+for ((subtask=start_idx; subtask<=end_idx; subtask++)); do
+  # existing script logic for each subtask
+  arrayid=$subtask
+  if [ "$subtask" -ge 0 ] && [ "$subtask" -le 437 ]; then
+    echo "id = $subtask"
+    echo "My target is ${file_name_list[$subtask]}"
+    echo "My strategy is i1r1"
+    timeout -k 2m 1h ./carbin/bac -b -e -i 1 -rotation -loop 1500 ${file_name_list[$subtask]} ./unsafe_res/438/bac_i1r1
+  fi
+done
+
