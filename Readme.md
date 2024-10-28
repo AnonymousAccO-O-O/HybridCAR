@@ -1,6 +1,6 @@
 ## Readme
 
-This repository keeps the artifacts for Hybrid CAR.
+This repository keeps the artifacts for coreLocality and HybridCAR.
 
 ### Structure
 
@@ -16,11 +16,13 @@ This repository keeps the artifacts for Hybrid CAR.
         ├── BICAR
         └── KCAR
 ├── graphs					// the graphs we use in the paper
+    ├── scripts             // scripts we use to deal with the output logs and draw the scatter files.
     ├── Fig1.pdf
     ├── Fig1.svg
     ├── ...
     └── Fig6.svg
 └── results					// experiment results
+    ├── readme.md			// detailed info regarding the experiments
     ├── dataTable			// the data table and corresponding charts.
     ├── caramel				// results about caramel
         ├── single 			// single strategy, without hybrid
@@ -32,6 +34,8 @@ This repository keeps the artifacts for Hybrid CAR.
 			├── 1h			// short term result
     		└── 6h			// long term result
     ├── abcbmc				// logs and counter examples of ABC-BMC
+    ├── PDRs				// results about PDR candidates.
+    ├── sample.pbs			// A sample PBS we use to run the experiments
     └── combineWithSOTA		
     	├── 1h				// short term
             ├── BAC...
