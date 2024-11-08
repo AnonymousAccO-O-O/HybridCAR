@@ -1,6 +1,7 @@
 ## Readme
 
 This repository keeps the artifacts for coreLocality and HybridCAR.
+Paper Link: https://arxiv.org/abs/2411.00026
 
 ### Structure
 
